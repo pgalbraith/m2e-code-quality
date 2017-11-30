@@ -1,5 +1,11 @@
 package com.basistech.m2e.code.quality.shared;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -7,6 +13,9 @@ import org.apache.maven.model.ConfigurationContainer;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -66,5 +75,23 @@ public class AbstractMavenPluginConfigurationTranslator {
 		}
 		return list;
 	}
+	protected void copyIfChanged(InputStream input, Path output) throws IOException {
+		copyIfChanged(input, output.toFile());
+	}
 
+	protected void copyIfChanged(InputStream input, File output) throws IOException {
+		byte[] fileContent = IOUtil.toByteArray(input);
+		ByteArrayInputStream bufferedInput = new ByteArrayInputStream(fileContent);
+		if (output.exists()) {
+			// compare content first
+			try (InputStream outputContent = new FileInputStream(output)) {
+				if (IOUtil.contentEquals(bufferedInput, outputContent)) {
+					return;
+				}
+			}
+			// rewind input
+			bufferedInput.reset();
+		}
+		FileUtils.copyStreamToFile(new RawInputStreamFacade(bufferedInput), output);
+	}
 }
