@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright 2010 Mohan KR
  * Copyright 2010 Basis Technology Corp.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -91,6 +91,9 @@ public class MavenPluginConfigurationTranslator extends AbstractMavenPluginConfi
 		this.configurator = configurator;
 	}
 
+	public boolean isSkip() throws CoreException {
+		return getParameterValue("skip", Boolean.class, Boolean.FALSE);
+	}
 
 	public void setIncludeFilterFiles(final UserPreferences prefs)
 	        throws CoreException {
@@ -153,7 +156,7 @@ public class MavenPluginConfigurationTranslator extends AbstractMavenPluginConfi
 	 * <li>EXPERIMENTAL</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 * @param prefs
 	 *            the {@link UserPreferences} instance.
 	 * @throws CoreException
@@ -307,7 +310,7 @@ public class MavenPluginConfigurationTranslator extends AbstractMavenPluginConfi
 	 * This the only reference I could find on how the Findbugs Eclipse Plugin
 	 * configuration works.
 	 * </p>
-	 * 
+	 *
 	 * @param resc
 	 *            the resource location as read from the plugin configuration.
 	 * @param newLocation
