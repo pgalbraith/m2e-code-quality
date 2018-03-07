@@ -63,7 +63,7 @@
         <repository>
             <id>cs</id>
             <layout>p2</layout>
-            <url>http://eclipse-cs.sf.net/update</url>
+            <url>https://dl.bintray.com/eclipse-cs/eclipse-cs/7.6.0/</url>
         </repository>
         <repository>
             <id>pmd</id>
