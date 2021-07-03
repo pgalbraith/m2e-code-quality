@@ -11,21 +11,25 @@
 <repository location="http://download.eclipse.org/technology/m2e/milestones/1.8"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="net.sourceforge.pmd.eclipse.feature.group" version="4.0.13.v20170429-1921"/>
-<repository location="https://dl.bintray.com/pmd/pmd-eclipse-plugin/updates/"/>
+<unit id="net.sourceforge.pmd.eclipse.feature.group" version="0.0.0"/>
+<repository location="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="edu.umd.cs.findbugs.plugin.eclipse.feature.group" version="3.0.1.20150306-5afe4d1"/>
+<unit id="edu.umd.cs.findbugs.plugin.eclipse.feature.group" version="0.0.0"/>
 <repository location="http://findbugs.cs.umd.edu/eclipse/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="com.github.spotbugs.plugin.eclipse.feature.group" version="3.1.7.r201809130347-03f0119"/>
+<unit id="com.github.spotbugs.plugin.eclipse.feature.group" version="0.0.0"/>
 <repository location="https://spotbugs.github.io/eclipse/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="net.sf.eclipsecs.feature.group" version="8.0.0.201707161819"/>
+<unit id="net.sf.eclipsecs.feature.group" version="0.0.0"/>
 <repository location="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
 </location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+	<unit id="org.apache.commons.lang" version="2.6.0.v201404270220"/>
+	<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository/"/>
+</location>
 </locations>
-<targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.6"/>
+<targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.7"/>
 </target>

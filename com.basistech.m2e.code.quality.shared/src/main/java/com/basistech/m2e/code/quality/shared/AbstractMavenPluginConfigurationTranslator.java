@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,10 +23,14 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.embedder.IMaven;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class AbstractMavenPluginConfigurationTranslator {
+	private static final Logger LOG = LoggerFactory
+	        .getLogger(AbstractMavenPluginConfigurationTranslator.class);
 
 	private final IMaven maven;
 	private final MavenProject mavenProject;
@@ -100,7 +105,7 @@ public class AbstractMavenPluginConfigurationTranslator {
 	 * Copy a resource from the maven plugin configuration to a location within
 	 * the project.
 	 * <p>
-	 * This the only reference I could find on how the Findbugs Eclipse Plugin
+	 * This the only reference I could find on how the FindBugs Eclipse Plugin
 	 * configuration works.
 	 * </p>
 	 *
@@ -108,26 +113,28 @@ public class AbstractMavenPluginConfigurationTranslator {
 	 *            the resource location as read from the plugin configuration.
 	 * @param newLocation
 	 *            the new location relative to the project root.
+	 * @return <code>true</code> if resource has been found and copied.
 	 * @throws NullPointerException
 	 *             If any of the arguments are {@code null}.
 	 * @throws ConfigurationException
-	 *             If an error occurred during the resolution of the resource or
-	 *             copy to the new location failed.
+	 *             If an error occurred during copy to the new location failed.
+	 *             If the resolutions fails only an error will be logged
 	 */
-	protected void copyUrlResourceToProject(final String resc,
+	protected boolean copyUrlResourceToProject(final String resc,
 	        final String newLocation) {
 		Preconditions.checkNotNull(resc);
 		Preconditions.checkNotNull(newLocation);
 		final URL urlResc = resolveLocation(resc);
 		if (urlResc == null) {
-			throw new ConfigurationException(String.format(
-			        "could not locate resource [%s]", resc));
+			LOG.error(String.format("%s: could not locate resource [%s] in classpath of [%s]", project.getName(), resc, mojoExecution));
+			return false;
 		}
 		// copy the file to new location
 		final File newLocationFile =
 		        new File(this.project.getLocationURI().getPath(), newLocation);
 		try (InputStream inputStream = urlResc.openStream()) {
 			copyIfChanged(inputStream, newLocationFile.toPath());
+			return true;
 		} catch (final IOException ex) {
 			throw new ConfigurationException(String.format(
 			        "could not copy resource [%s] to [%s], reason [%s]",
@@ -167,6 +174,40 @@ public class AbstractMavenPluginConfigurationTranslator {
 			source = bufferedInput;
 		}
 		Files.copy(source, output, StandardCopyOption.REPLACE_EXISTING);
+	}
+
+	/**
+	 * Copy a comma separated list of resource names, separated by comma. Will append an index to the basename if there
+	 * is more than a single element. Also, for backwards compatibility the first element will not have an index
+	 * appended.
+	 * @param resc
+	 *            the resource location as read from the plugin configuration. Can be a single resource or a comma 
+	 *            separated list of resources
+	 * @param newLocationBase
+	 *            the new location relative to the project root.
+	 * @return a list of new locations relative to the project root
+	 * @throws NullPointerException
+	 *             If any of the arguments are {@code null}.
+	 * @throws ConfigurationException
+	 *             If an error occurred during the resolution of the resource or
+	 *             copy to the new location failed.
+	 * @see #copyUrlResourceToProject(String, String)
+	 */
+	protected List<String> copyUrlResourcesToProject(String resc, String newLocationBase) {
+		Preconditions.checkNotNull(resc);
+		Preconditions.checkNotNull(newLocationBase);
+
+		List<String> result = new ArrayList<String>();
+		int index=0;
+		for (String resource : resc.split(",")) {
+			String suffix = index == 0 ? "" : "." + index;
+			String target = newLocationBase + suffix; 
+			if (copyUrlResourceToProject(resource, target)) {
+				result.add(target);
+				++index;
+			}
+		}
+		return result;
 	}
 
 	public String getExecutionId() {

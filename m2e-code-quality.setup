@@ -26,9 +26,13 @@
     <description>Set the heap space needed to work with the projects of ${scope.project.label}</description>
   </setupTask>
   <setupTask
+      xsi:type="setup:EclipseIniTask"
+      option="-Doomph.redirection.m2e-code-quality"
+      value="https://raw.githubusercontent.com/m2e-code-quality/m2e-code-quality/master/->${git.clone.location|uri}/"/>
+  <setupTask
       xsi:type="setup:VariableTask"
       name="eclipse.target.platform"
-      defaultValue="Neon"
+      defaultValue="Photon"
       storageURI="scope://Workspace"/>
   <setupTask
       xsi:type="setup.p2:P2Task"
@@ -86,6 +90,36 @@
           rootFolder="${git.clone.location}"
           locateNestedProjects="true"/>
       <repositoryList
+          name="2018-12">
+        <repository
+            url="http://findbugs.cs.umd.edu/eclipse/"/>
+        <repository
+            url="http://download.eclipse.org/releases/2018-12"/>
+        <repository
+            url="https://spotbugs.github.io/eclipse/"/>
+        <repository
+            url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
+        <repository
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
+        <repository
+            url="http://download.eclipse.org/technology/m2e/releases/1.9"/>
+      </repositoryList>
+      <repositoryList
+          name="2018-09">
+        <repository
+            url="http://download.eclipse.org/releases/2018-09"/>
+        <repository
+            url="http://findbugs.cs.umd.edu/eclipse/"/>
+        <repository
+            url="https://spotbugs.github.io/eclipse/"/>
+        <repository
+            url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
+        <repository
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
+        <repository
+            url="http://download.eclipse.org/technology/m2e/releases/1.9"/>
+      </repositoryList>
+      <repositoryList
           name="Photon">
         <repository
             url="http://download.eclipse.org/releases/photon"/>
@@ -96,7 +130,7 @@
         <repository
             url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
         <repository
-            url="https://dl.bintray.com/pmd/pmd-eclipse-plugin/updates/"/>
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
         <repository
             url="http://download.eclipse.org/technology/m2e/milestones/1.9"/>
       </repositoryList>
@@ -111,7 +145,7 @@
         <repository
             url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
         <repository
-            url="https://dl.bintray.com/pmd/pmd-eclipse-plugin/updates/"/>
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
         <repository
             url="http://download.eclipse.org/technology/m2e/milestones/1.8"/>
       </repositoryList>
@@ -126,7 +160,7 @@
         <repository
             url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
         <repository
-            url="https://dl.bintray.com/pmd/pmd-eclipse-plugin/updates/"/>
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
         <repository
             url="http://download.eclipse.org/technology/m2e/milestones/1.7"/>
       </repositoryList>
@@ -141,7 +175,7 @@
         <repository
             url="https://dl.bintray.com/eclipse-cs/eclipse-cs/8.0.0/"/>
         <repository
-            url="https://dl.bintray.com/pmd/pmd-eclipse-plugin/updates/"/>
+            url="https://pmd.github.io/pmd-eclipse-plugin-p2-site/"/>
         <repository
             url="http://download.eclipse.org/technology/m2e/milestones/1.6"/>
       </repositoryList>

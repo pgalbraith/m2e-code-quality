@@ -19,7 +19,6 @@ package com.basistech.m2e.code.quality.pmd;
 import static com.basistech.m2e.code.quality.pmd.PmdEclipseConstants.MAVEN_PLUGIN_ARTIFACTID;
 import static com.basistech.m2e.code.quality.pmd.PmdEclipseConstants.MAVEN_PLUGIN_GROUPID;
 import static com.basistech.m2e.code.quality.pmd.PmdEclipseConstants.PMD_RULESET_FILE;
-import static com.basistech.m2e.code.quality.pmd.PmdEclipseConstants.PMD_SETTINGS_FILE;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -60,6 +59,7 @@ import net.sourceforge.pmd.RuleSetFactory;
 import net.sourceforge.pmd.RuleSetNotFoundException;
 import net.sourceforge.pmd.RuleSetReferenceId;
 import net.sourceforge.pmd.eclipse.plugin.PMDPlugin;
+import net.sourceforge.pmd.eclipse.runtime.PMDRuntimeConstants;
 import net.sourceforge.pmd.eclipse.runtime.builder.MarkerUtil;
 import net.sourceforge.pmd.eclipse.runtime.builder.PMDNature;
 import net.sourceforge.pmd.eclipse.runtime.properties.IProjectProperties;
@@ -69,16 +69,17 @@ import net.sourceforge.pmd.eclipse.runtime.writer.WriterException;
 import net.sourceforge.pmd.util.ResourceLoader;
 
 public class EclipsePmdProjectConfigurator
-        extends AbstractMavenPluginProjectConfigurator {
+        extends AbstractMavenPluginProjectConfigurator<PMDNature> {
 
-	// private static final String PMD_NATURE =
-	// "net.sourceforge.pmd.eclipse.plugin.pmdNature";
-	private static final String JAVA_NATURE = "org.eclipse.jdt.core.javanature";
 	private static final Logger LOG =
 	        LoggerFactory.getLogger(EclipsePmdProjectConfigurator.class);
 
 	// create a rule set factory for instantiating rule sets
 	private final RuleSetFactory factory = new RuleSetFactory();
+
+	public EclipsePmdProjectConfigurator() {
+		super(PMDNature.PMD_NATURE, PMDRuntimeConstants.PMD_MARKER, PMD_RULESET_FILE);
+	}
 
 	@Override
 	protected String getMavenPluginGroupId() {
@@ -98,9 +99,8 @@ public class EclipsePmdProjectConfigurator
 	@Override
 	protected void handleProjectConfigurationChange(
 	        final IMavenProjectFacade mavenProjectFacade,
-	        final IProject project, final IProgressMonitor monitor,
-	        final MavenPluginWrapper mavenPluginWrapper,
-	        final MavenSession session) throws CoreException {
+	        final IProject project, final MavenPluginWrapper mavenPluginWrapper,
+	        final MavenSession session, final IProgressMonitor monitor) throws CoreException {
 
 		final MojoExecution execution = findMojoExecution(mavenPluginWrapper);
 		final MojoExecution pmdGoalExecution = findForkedExecution(execution,
@@ -112,55 +112,18 @@ public class EclipsePmdProjectConfigurator
 		this.createOrUpdateEclipsePmdConfiguration(mavenPluginWrapper, project,
 		        pluginCfgTranslator, monitor, session);
 
-		addPMDNature(project, monitor);
-
 		// in PMD we need to enable or disable the builder for skip
-		PMDNature nature = (PMDNature) project.getNature(PMDNature.PMD_NATURE);
-		if (!pluginCfgTranslator.isSkip()) {
-			nature.configure();
-		} else {
-			nature.deconfigure();
-			MarkerUtil.deleteAllMarkersIn(project);
+		if (!this.createOrUpdateEclipsePmdConfiguration(mavenPluginWrapper, project,
+		        pluginCfgTranslator, monitor, session)) {
+			unconfigureEclipsePlugin(project, monitor);
+			return;
 		}
-	}
 
-	// private static boolean addPMDNatureHere(final IProject project,
-	// final IProgressMonitor monitor) throws CoreException {
-	// boolean success = false;
-	//
-	// // unlike the one inside PMD, this carefully does NOT check for the
-	// prerequisite
-	// // Java nature, in case we end up in the wrong order.
-	// if (project.hasNature(JAVA_NATURE) && !project.hasNature(PMD_NATURE)) {
-	// final IProjectDescription description = project.getDescription();
-	// final String[] natureIds = description.getNatureIds();
-	// String[] newNatureIds = new String[natureIds.length + 1];
-	// System.arraycopy(natureIds, 0, newNatureIds, 0, natureIds.length);
-	// newNatureIds[natureIds.length] = PMD_NATURE;
-	// description.setNatureIds(newNatureIds);
-	// project.setDescription(description, monitor);
-	// success = true;
-	// }
-	//
-	// return success;
-	// }
-
-	private void addPMDNature(final IProject project,
-	        final IProgressMonitor monitor) throws CoreException {
-		if (project.hasNature(JAVA_NATURE)) {
-			try {
-				PMDNature.addPMDNature(project, monitor);
-			} catch (final CoreException pmdNatureProblem) {
-				LOG.error("PMD plugin threw exception adding PMD nature",
-				        pmdNatureProblem);
-				throw pmdNatureProblem;
-			}
-		}
+		configure(project, pluginCfgTranslator.isSkip(), monitor);
 	}
 
 	@Override
-	protected void unconfigureEclipsePlugin(final IProject project,
-	        final IProgressMonitor monitor) throws CoreException {
+	protected void unconfigureEclipsePlugin(IProject project, IProgressMonitor monitor) throws CoreException {
 		final IProjectPropertiesManager mgr =
 		        PMDPlugin.getDefault().getPropertiesManager();
 		try {
@@ -171,16 +134,7 @@ public class EclipsePmdProjectConfigurator
 			mgr.storeProjectProperties(projectProperties);
 		} catch (final PropertiesException ex) {
 		}
-
-		PMDNature.removePMDNature(project, monitor);
-		// delete .pmdruleset if any
-		final IResource pmdRulesetResource = project.getFile(PMD_RULESET_FILE);
-		pmdRulesetResource.delete(IResource.FORCE, monitor);
-
-		// delete .pmd if any
-		final IResource pmdPropertiesResource =
-		        project.getFile(PMD_SETTINGS_FILE);
-		pmdPropertiesResource.delete(IResource.FORCE, monitor);
+		super.unconfigureEclipsePlugin(project, monitor);
 	}
 
 	/**
@@ -189,7 +143,7 @@ public class EclipsePmdProjectConfigurator
 	 * @throws CoreException
 	 *             if the creation failed.
 	 */
-	private void createOrUpdateEclipsePmdConfiguration(
+	private boolean createOrUpdateEclipsePmdConfiguration(
 	        final MavenPluginWrapper pluginWrapper, final IProject project,
 	        final MavenPluginConfigurationTranslator pluginCfgTranslator,
 	        final IProgressMonitor monitor, final MavenSession session)
@@ -224,11 +178,12 @@ public class EclipsePmdProjectConfigurator
 				mgr.storeProjectProperties(projectProperties);
 			} catch (final PropertiesException ex) {
 				// remove the files
-				this.unconfigureEclipsePlugin(project, monitor);
+				return false;
 			}
 		} catch (final PMDException ex) {
 			// nothing to do, skip configuration
 		}
+		return true;
 	}
 
 	private List<Rule> locatePmdRules(
@@ -377,4 +332,11 @@ public class EclipsePmdProjectConfigurator
 		return execution;
 	}
 
+	@Override
+	protected void removeNature(IProject project, IProgressMonitor monitor) throws CoreException {
+		super.removeNature(project, monitor);
+
+		// clean all PMD markers
+		MarkerUtil.deleteAllMarkersIn(project);
+	}
 }
